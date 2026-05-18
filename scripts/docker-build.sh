@@ -32,8 +32,8 @@ apply_patch() {
     popd > /dev/null
 }
 
-apply_patch "${FIRMWARE_DIR}/startup_overclock.patch"          "${MICROPYTHON_DIR}/lib/pico-sdk"
-apply_patch "${FIRMWARE_DIR}/932f76c6ba64c5a3e68de3324556d9979f09303b.patch" "${MICROPYTHON_DIR}"
+apply_patch "${FIRMWARE_DIR}/startup_overclock.patch" "${MICROPYTHON_DIR}/lib/pico-sdk"
+# pins.csv fix (932f76c) is already merged in MicroPython v1.24+ — skip
 
 # ── Board builds ──────────────────────────────────────────────────────────────
 
@@ -81,12 +81,15 @@ for BUILD_BOARD in ${BOARDS}; do
     python3 "${WORKSPACE}/py_decl/py_decl.py" --to-json --verify "${RELEASE_FILE}"
 
     echo "── appending Badger OS filesystem ──"
+    # dir2uf2 writes output relative to cwd; cd into dist so files land there
+    pushd "${DIST_DIR}" > /dev/null
     "${WORKSPACE}/dir2uf2/dir2uf2" \
         --fs-compact \
         --append-to "${RELEASE_FILE}" \
         --manifest "${BOARD_DIR}/uf2-manifest.txt" \
-        --filename "${RELEASE_FILE_WITH_OS}" \
+        --filename "with-badger-os.uf2" \
         "${BADGER_OS_DIR}/"
+    popd > /dev/null
 
     echo ""
     echo "Output:"

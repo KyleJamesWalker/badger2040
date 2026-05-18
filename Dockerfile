@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=UTC
@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir littlefs-python==0.17.1
+RUN pip3 install --no-cache-dir --break-system-packages littlefs-python==0.17.1
 
 WORKDIR /workspace
 
@@ -29,9 +29,10 @@ ARG PY_DECL_VERSION=v0.0.5
 RUN git clone --depth 1 --branch ${PY_DECL_VERSION} https://github.com/gadgetoid/py_decl.git && \
     git clone --depth 1 --branch ${DIR2UF2_VERSION} https://github.com/gadgetoid/dir2uf2.git
 
-# Pimoroni Pico libraries
+# Pimoroni Pico libraries (init submodules: qrcode C module + sensor drivers)
 RUN git clone --depth 1 --branch ${PIMORONI_PICO_VERSION} \
-    https://github.com/pimoroni/pimoroni-pico.git
+    https://github.com/pimoroni/pimoroni-pico.git && \
+    cd pimoroni-pico && git submodule update --init
 
 # MicroPython source + required submodules
 RUN git clone --depth 1 --branch ${MICROPYTHON_VERSION} \
